@@ -24,6 +24,7 @@ export default class Board extends Phaser.Scene {
     this.load.image("Board", "assets/Board.png");
     this.load.image("X", "assets/X.png");
     this.load.image("O", "assets/O.png");
+    this.load.image("Particle", "assets/Particle.png");
     this.load.audio("Tap", "assets/Tap.mp3");
     this.load.audio("Win", "assets/Win.mp3");
   }
@@ -79,8 +80,7 @@ export default class Board extends Phaser.Scene {
     this.timerText.setText(`Tiempo:${this.countdown}`);
 
     if (this.countdown <= 0) {
-      this.WinSound.play();
-      this.finishGame(scene, this.currentPlayer === "X" ? "O" : "X");
+      this.winGame(scene, this.currentPlayer === "X" ? "O" : "X");
     }
   }
 
@@ -97,8 +97,7 @@ export default class Board extends Phaser.Scene {
         this.board[row][col] = this.currentPlayer;
         this.drawSymbol(this, row, col);
         if (this.checkWin(row, col)) {
-          this.WinSound.play();
-          this.finishGame(this, this.currentPlayer);
+          this.winGame(this, this.currentPlayer);
         } else {
           if (this.turnsPlayed >= 9) {
             this.finishGame(this, "");
@@ -202,12 +201,27 @@ export default class Board extends Phaser.Scene {
     });
   }
 
+  winGame(scene: Phaser.Scene, result: string) {
+    this.WinSound.stop();
+    this.WinSound.play();
+    scene.add
+      .particles(400, 450, "Particle", {
+        lifespan: 5000,
+        angle: { min: -45, max: -135 },
+        speed: 1500,
+        frequency: 150,
+        gravityY: 800,
+      })
+      .setScale(0.3);
+    this.finishGame(this, result);
+  }
+
   finishGame(scene: Phaser.Scene, result: string) {
     scene.input.off("pointerdown", this.handlePointerDown);
     this.timerEvent.remove(false);
     this.drawMessage(scene, result);
     scene.time.delayedCall(
-      3000,
+      result ? 5000 : 3000,
       () => {
         scene.scene.stop("Board");
         scene.scene.start("GameOver", { result: result });

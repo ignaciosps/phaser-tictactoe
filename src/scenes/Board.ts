@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 import { getMessage, initScene } from "../utils";
-let currentPlayer: "X" | "O";
 
+const initialCountdown = 10;
 export default class Board extends Phaser.Scene {
+  private currentPlayer!: "X" | "O";
   private board = [
     ["", "", ""],
     ["", "", ""],
@@ -11,6 +12,10 @@ export default class Board extends Phaser.Scene {
   private tapSound!: Phaser.Sound.BaseSound;
   private WinSound!: Phaser.Sound.BaseSound;
   private turnsPlayed!: number;
+  private timerEvent!: Phaser.Time.TimerEvent;
+  private timerText!: Phaser.GameObjects.Text;
+  private turnText!: Phaser.GameObjects.Text;
+  private countdown!: number;
   constructor() {
     super("Board");
   }
@@ -28,13 +33,55 @@ export default class Board extends Phaser.Scene {
     this.clearBoard();
     this.turnsPlayed = 0;
 
-    currentPlayer = "X";
+    this.currentPlayer = "X";
 
     this.tapSound = this.sound.add("Tap");
     this.WinSound = this.sound.add("Win");
 
     this.add.image(400, 300, "Board");
     this.input.on("pointerdown", this.handlePointerDown, this);
+
+    this.timerText = this.add
+      .text(5, 10, `Tiempo:${initialCountdown}`, {
+        fontSize: "24px",
+        color: "#000000",
+      })
+      .setOrigin(0, 0);
+
+    this.turnText = this.add
+      .text(5, 40, `Turno:${this.currentPlayer}`, {
+        fontSize: "24px",
+        color: "#000000",
+      })
+      .setOrigin(0, 0);
+
+    this.startTimer(this);
+  }
+
+  startTimer(scene: Phaser.Scene) {
+    if (this.timerEvent) {
+      this.timerEvent.remove();
+    }
+    this.countdown = initialCountdown;
+    this.timerText.setText(`Tiempo:${this.countdown}`);
+    this.turnText.setText(`Turno:${this.currentPlayer}`);
+
+    this.timerEvent = scene.time.addEvent({
+      delay: 1000,
+      callback: () => this.updateTimer(scene),
+      callbackScope: scene,
+      loop: true,
+    });
+  }
+
+  updateTimer(scene: Phaser.Scene) {
+    this.countdown--;
+    this.timerText.setText(`Tiempo:${this.countdown}`);
+
+    if (this.countdown <= 0) {
+      this.WinSound.play();
+      this.finishGame(scene, this.currentPlayer === "X" ? "O" : "X");
+    }
   }
 
   handlePointerDown(pointer: PointerEvent) {
@@ -46,30 +93,30 @@ export default class Board extends Phaser.Scene {
 
     if (col >= 0 && col < 3 && row >= 0 && row < 3) {
       if (this.board[row][col] === "") {
-        this.board[row][col] = currentPlayer;
-        this.drawSymbol(this, row, col, currentPlayer);
-
+        this.turnsPlayed += 1;
+        this.board[row][col] = this.currentPlayer;
+        this.drawSymbol(this, row, col);
         if (this.checkWin(row, col)) {
           this.WinSound.play();
-          this.finishGame(this, currentPlayer);
+          this.finishGame(this, this.currentPlayer);
         } else {
-          this.turnsPlayed += 1;
           if (this.turnsPlayed >= 9) {
             this.finishGame(this, "");
           } else {
-            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            this.currentPlayer = this.currentPlayer === "X" ? "O" : "X";
+            this.startTimer(this);
           }
         }
       }
     }
   }
 
-  drawSymbol(scene: this, row: number, col: number, symbol: string) {
+  drawSymbol(scene: this, row: number, col: number) {
     const x = 200 + col * 200;
     const y = 100 + row * 200;
 
     const imageToAnimate = scene.add
-      .image(x, y, symbol)
+      .image(x, y, this.currentPlayer)
       .setScale(0.5)
       .setOrigin(0.5)
       .setAlpha(0);
@@ -157,6 +204,7 @@ export default class Board extends Phaser.Scene {
 
   finishGame(scene: Phaser.Scene, result: string) {
     scene.input.off("pointerdown", this.handlePointerDown);
+    this.timerEvent.remove(false);
     this.drawMessage(scene, result);
     scene.time.delayedCall(
       3000,

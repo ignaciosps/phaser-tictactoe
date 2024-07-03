@@ -11,9 +11,7 @@ export default class GameOver extends Phaser.Scene {
     this.result = data.result;
   }
 
-  preload() {
-    this.load.image("Reload", "assets/Reload.png");
-  }
+  preload() {}
 
   create() {
     initScene(this);

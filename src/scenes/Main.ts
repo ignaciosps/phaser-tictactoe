@@ -5,9 +5,7 @@ export default class Main extends Phaser.Scene {
   constructor() {
     super("Main");
   }
-  preload() {
-    this.load.image("Play", "assets/Play.png");
-  }
+  preload() {}
   create() {
     initScene(this);
 

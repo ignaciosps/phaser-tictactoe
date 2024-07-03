@@ -20,14 +20,7 @@ export default class Board extends Phaser.Scene {
     super("Board");
   }
 
-  preload() {
-    this.load.image("Board", "assets/Board.png");
-    this.load.image("X", "assets/X.png");
-    this.load.image("O", "assets/O.png");
-    this.load.image("Particle", "assets/Particle.png");
-    this.load.audio("Tap", "assets/Tap.mp3");
-    this.load.audio("Win", "assets/Win.mp3");
-  }
+  preload() {}
 
   create() {
     initScene(this);

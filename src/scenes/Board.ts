@@ -19,15 +19,15 @@ export default class Board extends Phaser.Scene {
   constructor() {
     super("Board");
   }
-
+  init(data: any) {
+    this.currentPlayer = data.player;
+  }
   preload() {}
 
   create() {
     initScene(this);
     this.clearBoard();
     this.turnsPlayed = 0;
-
-    this.currentPlayer = "X";
 
     this.tapSound = this.sound.add("Tap");
     this.WinSound = this.sound.add("Win");

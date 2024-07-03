@@ -51,6 +51,6 @@ export default class GameOver extends Phaser.Scene {
 
   playAgain(scene: Phaser.Scene) {
     scene.scene.stop("GameOver");
-    scene.scene.run("Board");
+    scene.scene.run("Menu");
   }
 }

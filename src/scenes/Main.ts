@@ -30,7 +30,7 @@ export default class Main extends Phaser.Scene {
     });
     playImg.on("pointerdown", () => {
       this.scene.stop("Main");
-      this.scene.start("Board");
+      this.scene.start("Menu");
     });
   }
   update() {}
